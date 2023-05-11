@@ -1,0 +1,10 @@
+{
+  "load_extensions": {
+    "hide_input/main": true
+  },
+  "CodeCell": {
+    "cm_config": {
+      "indentUnit": 3
+    }
+  }
+}
