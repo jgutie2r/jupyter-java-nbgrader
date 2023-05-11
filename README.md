@@ -25,8 +25,20 @@ This project contains all the files requiered to build:
 -   a container image for the instructor with Jupyter notebooks, a Java Kernel and NBGrader to create assignments
 -   a container image for the students with Jupyter notebooks and a Java Kernel to do the assignments.
 
-Students can run the container inside a small virtual machine (with Alpine Linux) or remotely via JupyterHub:
+Students can run the container inside a small virtual machine (with Alpine Linux) or remotely via JupyterHub. For deployment options you can check:
 
+
+```bib
+@Conference{Gutierrez-2023-jupyter-java-nbgrader-jupyterhub-openstack,
+  author       = "Juan Gutiérrez-Aguado and Ignacio García-Fernandez and Manolo Pérez-Aixendri",
+  title        = "Uso de Jupyter notebooks y nbgrader para ofrecer retroalimentación en una asignatura de programación",
+  year         = "2023",
+  pages        = "",
+  month        = "July",
+  address      = "Granada (Spain)",
+  organization = "AENUI",
+}
+```
 
 <a id="org7e7f99f"></a>
 
@@ -72,7 +84,7 @@ You can adapt all these values to your needs before creating the container image
 
 ### `instructor-container/notebook.py`
 
-```
+```json
 {
   "load_extensions": {
     "hide_input/main": true
@@ -85,7 +97,6 @@ You can adapt all these values to your needs before creating the container image
 }
 ```
 
-
 Where it is specified the indentation (3 spaces in this example).
 
 <a id="orgab0d55e"></a>
@@ -94,7 +105,7 @@ Where it is specified the indentation (3 spaces in this example).
 
 This file is used to remove the solution from the feedback (according to the delimiters defined in `container/nbgrader_config.py`:
 
-```
+```python
 #!/usr/bin/env python3
 import sys
 import re
@@ -127,7 +138,7 @@ with open(html_path, 'w+') as stream:
 
 ### `instructor-container/Dockerfile`
 
-```
+```dockerfile
 FROM docker.io/jbindinga/java-notebook:latest
 USER root
 RUN apt install -y libffi-dev
@@ -157,7 +168,7 @@ Finally nbgrader is configured to use the folder `Tareas` (you can change that f
 
 ## Creating the container image
 
-```
+```bash
 cd instructor-container
 # This instruction assumes that you have docker in your machine
 docker build . -t jupyter-java-nbgrader:1.0
@@ -168,7 +179,7 @@ docker build . -t jupyter-java-nbgrader:1.0
 
 ## Running the container
 
-```
+```bash
 # This is the folder where the assigments and student versions will be in
 # your file system. Adapt to your needs
 courseDir=/home/instructor/course/
@@ -205,7 +216,7 @@ docker logs jnb
 
 ## `student-container/Dockerfile`
 
-```
+```dockerfile
 FROM  jupyter/base-notebook:2023-05-08
 
 USER root
