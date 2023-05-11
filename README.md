@@ -25,15 +25,14 @@ This project contains all the files requiered to build:
 -   a container image for the instructor with Jupyter notebooks, a Java Kernel and NBGrader to create assignments
 -   a container image for the students with Jupyter notebooks and a Java Kernel to do the assignments.
 
-Students can run the container inside a small virtual machine (with Alpine Linux) or remotely via JupyterHub. For deployment options you can check:
-
+Students can run the container installing docker in their computers, inside a small virtual machine (with Alpine Linux and docker) or remotely via JupyterHub. For deployment options you can check (in Spanish):
 
 ```bib
 @Conference{Gutierrez-2023-jupyter-java-nbgrader-jupyterhub-openstack,
   author       = "Juan Gutiérrez-Aguado and Ignacio García-Fernandez and Manolo Pérez-Aixendri",
   title        = "Uso de Jupyter notebooks y nbgrader para ofrecer retroalimentación en una asignatura de programación",
   year         = "2023",
-  pages        = "",
+  pages        = "1-8",
   month        = "July",
   address      = "Granada (Spain)",
   organization = "AENUI",
