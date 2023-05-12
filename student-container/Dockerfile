@@ -3,15 +3,15 @@ FROM  jupyter/base-notebook:2022-10-17
 USER root
 # Install dependencies
 RUN apt-get update && \
-    apt-get install -y software-properties-common unzip git
+    apt-get install -y software-properties-common unzip git curl
 
-# Install Zulu OpenJdk 11 (LTS)
-RUN apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys 0xB1998361219BD9C9 \
-  && apt-add-repository 'deb http://repos.azulsystems.com/ubuntu stable main' \
-  && apt install -y zulu-11 \
-  && rm -rf /var/lib/apt/lists/
 
-# Unpack and install the kernel
+# Install Zulu OpenJdk 17 (LTS)
+RUN curl -s https://repos.azul.com/azul-repo.key | sudo gpg --dearmor -o /usr/share/keyrings/azul.gpg && \
+    echo "deb [signed-by=/usr/share/keyrings/azul.gpg] https://repos.azul.com/zulu/deb stable main" | sudo tee /etc/apt/sources.list.d/zulu.list && \
+    apt-get update && \
+    apt-get -y install zulu17-jdk
+
 RUN wget https://github.com/SpencerPark/IJava/releases/download/v1.3.0/ijava-1.3.0.zip -O ijava-kernel.zip
 RUN unzip ijava-kernel.zip -d ijava-kernel \
   && cd ijava-kernel \
@@ -20,13 +20,10 @@ RUN unzip ijava-kernel.zip -d ijava-kernel \
 # Cleanup
 RUN rm ijava-kernel.zip
 
-RUN mkdir -p /home/jovyan/.jupyter/custom
-COPY custom.css /home/jovyan/.jupyter/custom/cuscom.css
 RUN mkdir -p /home/jovyan/work && \
-    chown -R jovyan:users /home/jovyan/work && \
-    chown -R jovyan:users /home/jovyan/.jupyter/custom
+    chown -R jovyan:users /home/jovyan/work 
 
-# Set user back to priviledged user.
+# Set user back to default user.
 USER $NB_USER
-ENV JAVA_HOME=/usr/lib/jvm/zulu-11-amd64/
 WORKDIR /home/jovyan/work
+

@@ -12,6 +12,7 @@
     3.  [Running the container](#org3759423)
 3.  [Student container](#org5ea856c)
     1.  [`student-container/Dockerfile`](#org39883d0)
+    2.  [Creating the container image](#org9949d27)
 4.  [Sample notebook](#org6ca7ded)
 
 
@@ -51,25 +52,9 @@ Students can run the container installing docker in their computers, inside a sm
 
 <a id="orgc93c15a"></a>
 
-### `instructor-container/nbgrader_config.py`
+### File `instructor-container/nbgrader_config.py`
 
-```
-c = get_config()
-c.CourseDirectory.course_id = "Tareas"
-c.CourseDirectory.root="/home/jovyan/Tareas"
-
-# This is the folder where the assigments will be stored to deliver via jupyterhub
-c.Exchange.root = "/srv/nbgrader/exchange"
-
-c.ClearSolutions.begin_solution_delimeter = "BSOL"
-c.ClearSolutions.end_solution_delimeter = "ESOL"
-
-# Short names for BEGIN SOLUTION and for BEGIN HIDDEN TESTS
-c.ClearHiddenTests.begin_test_delimeter = "BTEST"
-c.ClearHiddenTests.end_test_delimeter = "ETEST"
-```
-
-Where it is specified:
+This file contains the following configuration: 
 
 -   That all the notebooks will be created under a folder named `Tareas` and will be located under `/home/jovyan`.
 -   The folder where the assignments will be deployed by nbgrader is `/srv/nbgrader/exchange`.
@@ -81,85 +66,23 @@ You can adapt all these values to your needs before creating the container image
 
 <a id="orgcb48782"></a>
 
-### `instructor-container/notebook.py`
+### File `instructor-container/notebook.py`
 
-```json
-{
-  "load_extensions": {
-    "hide_input/main": true
-  },
-  "CodeCell": {
-    "cm_config": {
-      "indentUnit": 3
-    }
-  }
-}
-```
-
-Where it is specified the indentation (3 spaces in this example).
+Configuration for the indentation (3 spaces).
 
 <a id="orgab0d55e"></a>
 
-### `instructor-container/remove_test_from_feedback.py`
+### File `instructor-container/remove_test_from_feedback.py`
 
-This file is used to remove the solution from the feedback (according to the delimiters defined in `container/nbgrader_config.py`:
-
-```python
-#!/usr/bin/env python3
-import sys
-import re
-
-START = '<span class="c1">// BTEST</span>'
-END='<span class="c1">// ETEST</span>'
-html_path = sys.argv[1].rstrip()
-with open(html_path, 'r') as content_file:
-    content = content_file.read()
-
-def replaceTextBetween(originalText, delimeterA, delimterB, replacementText):
-    index_from = 0
-    index_to = len(originalText)
-    if delimeterA in originalText:
-        index_from = originalText.index(delimeterA)
-
-    if delimterB in originalText:
-        index_to = originalText.index(delimterB) + len(delimterB)
-
-    return originalText[0:index_from] + originalText[index_to:]
-
-while START in content:
-    content = replaceTextBetween(content, START, END, '')
-with open(html_path, 'w+') as stream:
-    stream.write(content)
-```
+This file a hook is used to remove the solution from the feedback (according to the delimiters defined in `container/nbgrader_config.py`:
 
 
 <a id="org87fa639"></a>
 
-### `instructor-container/Dockerfile`
-
-```dockerfile
-FROM docker.io/jbindinga/java-notebook:latest
-USER root
-RUN apt install -y libffi-dev
-RUN pip install -U jupyter-client &&     pip install -U jupyter &&     pip install -U markupsafe &&     pip install -U nbformat &&     pip install -U traitlets
-
-RUN pip install --ignore-installed nbgrader &&     jupyter nbextension install --sys-prefix --py nbgrader --overwrite &&     jupyter nbextension enable --sys-prefix --py nbgrader &&     jupyter serverextension enable --sys-prefix --py nbgrader
-
-# Change uid and gid of jovyan to match my host uid and gid
-RUN groupmod -g 1001 users && usermod -u 1001 -g 1001 jovyan
-
-RUN mkdir -p /srv/nbgrader/exchange && chmod a+rw /srv/nbgrader/exchange && chown jovyan:users /srv/nbgrader/exchange
-
-USER jovyan
-COPY nbgrader_config.py /home/jovyan/.jupyter/
-COPY edit.json /home/jovyan/.jupyter/nbconfig/
-COPY remove_test_from_feedback.py /home/jovyan/.jupyter/remove_test_from_feedback.py
-COPY notebook.json /home/jovyan/.jupyter/nbconfig/
-RUN nbgrader quickstart Tareas
-```
+### File `instructor-container/Dockerfile`
 
 
-From the base image with a Java kernel, all the depedendencies are installed and the configurations files are copied to the image.
+From a base image with Jupyter all the dependencies are installed and the configurations files are copied to the image.
 
 Finally nbgrader is configured to use the folder `Tareas` (you can change that folder, but remember to be consistent across all provided files).
 
@@ -215,38 +138,20 @@ docker logs jnb
 
 ## `student-container/Dockerfile`
 
-```dockerfile
-FROM  jupyter/base-notebook:2023-05-08
+This image does not contains the nbgrader extension, and can be uploaded to dockerhub, encapsulated in a VM to be distributed to the studens, or can be used in a JupyterHub deployment.
 
-USER root
-# Install dependencies
-RUN apt-get update && \
-    apt-get install -y software-properties-common unzip git
 
-# Install Zulu OpenJdk 11 (customize to your needs)
-RUN apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys 0xB1998361219BD9C9 \
-  && apt-add-repository 'deb http://repos.azulsystems.com/ubuntu stable main' \
-  && apt install -y zulu-11 \
-  && rm -rf /var/lib/apt/lists/
 
-# Unpack and install the kernel
-RUN wget https://github.com/SpencerPark/IJava/releases/download/v1.3.0/ijava-1.3.0.zip -O ijava-kernel.zip
-RUN unzip ijava-kernel.zip -d ijava-kernel \
-  && cd ijava-kernel \
-  && python3 install.py --sys-prefix
+<a id="org9949d27"></a>
 
-# Cleanup
-RUN rm ijava-kernel.zip
+## Creating the container image
 
-# This is the working directory for students (customize to your needs)
-RUN mkdir -p /home/jovyan/work && \
-    chown -R jovyan:users /home/jovyan/work
-
-# Set user back to priviledged user.
-USER $NB_USER
-ENV JAVA_HOME=/usr/lib/jvm/zulu-11-amd64/
-WORKDIR /home/jovyan/work
+```bash
+cd student-container
+# This instruction assumes that you have docker in your machine
+docker build . -t jupyter-java:1.0
 ```
+
 
 <a id="org6ca7ded"></a>
 
