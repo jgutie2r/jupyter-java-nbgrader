@@ -138,7 +138,7 @@ docker logs jnb
 
 ## `student-container/Dockerfile`
 
-This image does not contains the nbgrader extension, and can be uploaded to dockerhub, encapsulated in a VM to be distributed to the studens, or can be used in a JupyterHub deployment.
+This image does not contain the nbgrader extension, and can be uploaded to dockerhub, encapsulated in a VM to be distributed to the studens, or can be used in a JupyterHub deployment.
 
 
 
