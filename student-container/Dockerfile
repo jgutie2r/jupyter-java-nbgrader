@@ -1,4 +1,4 @@
-FROM  jupyter/base-notebook:2022-10-17
+FROM  jupyter/base-notebook:2023-05-08
 
 USER root
 # Install dependencies
