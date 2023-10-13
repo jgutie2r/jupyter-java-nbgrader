@@ -34,10 +34,14 @@ RUN  pip install jupyter_server && \
      pip install 'python-lsp-server[all]' 
 
 # Install nbgrader
-RUN pip install --ignore-installed nbgrader && \
-    jupyter nbextension install --sys-prefix --py nbgrader --overwrite && \
-    jupyter nbextension enable --sys-prefix --py nbgrader && \
-    jupyter serverextension enable --sys-prefix --py nbgrader
+RUN pip install nbgrader && \
+    jupyter labextension enable --level=system nbgrader && \
+    jupyter server extension enable --system --py nbgrader
+
+#RUN pip install --ignore-installed nbgrader && \
+#    jupyter nbextension install --sys-prefix --py nbgrader --overwrite && \
+#    jupyter nbextension enable --sys-prefix --py nbgrader && \
+#    jupyter serverextension enable --sys-prefix --py nbgrader
 
 USER jovyan
 
